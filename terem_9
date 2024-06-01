@@ -1,0 +1,69 @@
+9. Сравните время работы set и unordered_set из STL для операций поиска с количеством элементов N=100,10000,〖 10〗^6, 〖 10〗^7 (например, измерить время поиска 10 существующих значений в наборе и 10 несуществующих). Ключами являются числа от 1 до 10^9. Результат оформить в виде таблицы, время в ns. Привести код, использованный для измерения времени для одного значения N.
+N	Set	Unordered_set
+100	195	105
+10000	145	125
+10^6	170	240
+10^7	185	110
+
+#include <iostream> 
+#include <algorithm> 
+#include <set>
+#include <unordered_set> 
+#include <vector> 
+#include <chrono> 
+#include <cstdlib>
+
+using namespace std;
+void measureTime(int size)
+{
+    srand(time(nullptr));
+    set<int> s;
+    unordered_set<int> us;
+    vector<int> testValues(20);
+
+    // Заполнение set и unordered_set и выбор тестовых значений 
+    for (int i = 0; i < size; ++i)
+    {
+        int val = rand() % 1000000000 + 1;
+        s.insert(val);
+        us.insert(val);
+        if (i < 10)
+            testValues[i] = val;
+    }
+
+    for (int i = 10; i < 20; ++i)
+    {
+        int val = rand() % 1000000000 + 1;
+        if (s.find(val) == s.end())
+            testValues[i] = val;
+    }
+
+    // Измерение времени поиска в set 
+    long long sum = 0;
+    for (int i = 0; i < 20; ++i)
+    {
+        auto start = chrono::steady_clock::now(); s.find(testValues[i]);
+        auto end = chrono::steady_clock::now();
+        sum += chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    }
+    cout << size << " elements in set - " << sum / 20 << " ns\n";
+
+    // Измерение времени поиска в unordered_set 
+    sum = 0;
+    for (int i = 0; i < 20; ++i) {
+        auto start = chrono::steady_clock::now(); us.find(testValues[i]);
+        auto end = chrono::steady_clock::now();
+        sum += chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    }
+    cout << size << " elements in unordered_set - " << sum / 20 << " ns\n";
+}
+
+int main() {
+    vector<int> sizes = { 100, 10000, 1000000, 10000000 };
+    for (int size : sizes) {
+        measureTime(size);
+        cout << '\n';
+    }
+    return 0;
+}
+ 
