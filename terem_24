@@ -1,0 +1,87 @@
+24. Напишите функцию для нахождения стороны выпуклого многоугольника, ближайшей к его центру тяжести. В качестве параметра функции передается вектор координат вершин многоугольника против часовой стрелки. Многоугольник является сплошной фигурой.
+Для точки использовать класс из лекций и его методы.
+
+
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <limits>
+
+using namespace std;
+
+struct Point {
+	double x, y;
+	double len() const { return hypot(x, y); } // расстояние от начала координат
+	double phi() const { return atan2(y, x); } // угол
+	Point operator+(Point p) const { return { x + p.x, y + p.y }; }
+	Point operator-(Point p) const { return { x - p.x, y - p.y }; }
+	double operator*(Point p) const { return x * p.x + y * p.y; } // скалярное произведение
+	double operator^(Point p) const { return x * p.y - y * p.x; } // векторное произведение
+	Point operator*(double a) const { return { a * x, a * y }; } // "масштабирование"
+	Point turn(double a) const { double ca = cos(a), sa = sin(a); return { x * ca - y * sa, x * sa + y * ca }; } // поворот
+	Point turn() const { return { -y, x }; } // поворот на π/2
+	Point operator-() const { return { -x, -y }; } // поворот на π
+};
+
+inline Point operator*(double a, Point p) { return p * a; } // "масштабирование"
+
+// Находим центроид многоугольника
+Point findCentroid(const vector<Point>& vertices) {
+	double cx = 0, cy = 0;
+	double area = 0;
+
+	for (size_t i = 0; i < vertices.size(); ++i) {
+		Point p1 = vertices[i];
+		Point p2 = vertices[(i + 1) % vertices.size()];
+
+		double cross = p1 ^ p2;
+		cx += (p1.x + p2.x) * cross;
+		cy += (p1.y + p2.y) * cross;
+		area += cross;
+	}
+
+	area *= 0.5;
+	cx /= (6 * area);
+	cy /= (6 * area);
+
+	return { cx, cy };
+}
+
+// Находим расстояние от точки до отрезка
+double distanceToSegment(Point p, Point a, Point b) {
+	Point ap = p - a;
+	Point ab = b - a;
+	double ab_len = ab.len();
+	double ab_ap_product = ap * ab;
+	double t = ab_ap_product / (ab_len * ab_len);
+
+	if (t < 0)
+		t = 0;
+	else if (t > 1)
+		t = 1;
+
+	Point closest = a + ab * t;
+	return (p - closest).len();
+}
+
+// Находим ближайшую сторону к центроиду
+pair<Point, Point> findClosestSide(const vector<Point>& vertices) {
+	Point centroid = findCentroid(vertices);
+
+	double minDistance = numeric_limits<double>::max();
+	pair<Point, Point> closestSide;
+
+	for (size_t i = 0; i < vertices.size(); ++i) {
+		Point a = vertices[i];
+		Point b = vertices[(i + 1) % vertices.size()];
+
+		double distance = distanceToSegment(centroid, a, b);
+		if (distance < minDistance) {
+			minDistance = distance;
+			closestSide = { a, b };
+		}
+	}
+
+	return closestSide;
+}
+
