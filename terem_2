@@ -1,0 +1,78 @@
+2. Используя класс stack из STL решите следующую задачу.
+Напишите функцию с использованием стека для проверки корректности XML-строки. XML-строка называется корректной, если она может быть получена по следующим правилам:
+•	Пустая строка является корректной XML-строкой.
+•	Если A и B — корректные XML-строки, то строка AB, получающаяся приписыванием строки B в конец строки A, также является корректной XML-строкой.
+•	Если A — корректная XML-строка, то строка <X>A</X>, получающаяся приписыванием в начало A открывающегося тега, а в конец — закрывающегося с таким же именем, также является корректной XML-строкой. Здесь X — любая непустая строка из строчных букв латинского алфавита.
+Например, представленные ниже строки:
+<a></a>
+<a><ab></ab><c></c></a>
+<a></a><a></a><a></a>
+являются корректными XML-строками, а такие строки как:
+<a></b>
+<a><b>
+<a><b></a></b>
+не являются корректными XML-строками.
+
+#include <iostream>
+#include <stack>
+#include <string>
+
+using namespace std;
+
+int main()
+{
+    setlocale(LC_ALL, "Russian");
+    stack<string> xml;
+    string inputString, stringTemp = "";
+    bool checkString = true;
+
+    getline(cin, inputString);
+
+    if (inputString == "")
+    {
+        cout << checkString << endl;
+        return 0;
+    }
+
+    int i = 0;
+    while (i != inputString.length())
+    {
+        if (inputString[i] != '<')
+        {
+            cout << !(checkString) << endl;
+            return 0;
+        }
+        else
+        {
+            i++;
+            int endXML = inputString.find('>', i);
+            while (i != endXML)
+            {
+                stringTemp += inputString[i];
+                i++;
+            }
+            if (stringTemp[0] != '/')
+                xml.push(stringTemp);
+            else
+            {
+                stringTemp.erase(0, 1);
+                if (xml.top() != stringTemp)
+                {
+                    cout << !(checkString) << endl;
+                    return 0;
+                }
+                else
+                    xml.pop();
+            }
+            stringTemp = "";
+            i++;
+        }   
+    }
+
+    if (xml.empty())
+        cout << checkString << endl;
+    else
+        cout << !(checkString) << endl;
+
+    return 0;
+}
