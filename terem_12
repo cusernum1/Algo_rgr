@@ -1,0 +1,68 @@
+12. Определить АТД Матрица, обеспечивающий метод [i,j] для доступа к элементам матрицы. В конструкторе задаются размеры матрицы.
+Определить операцию *. Выполнить возведение матрицы N×N из целых чисел 0 и 1 в степень K по модулю 2: A^(K(mod2)). Для возведения матрицы в степень использовать метод уменьшения размера задачи в 2 раза.
+
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <stdexcept>
+
+using namespace std;
+
+class Matrix
+{
+	int n, m;
+	vector<vector<int>> data;
+public:
+	Matrix(int n, int m) : n(n), m(m), data(n, vector<int>(m, 0)) {}
+	int& operator()(int i, int j)
+	{
+		if (i < 0 || i >= n || j < 0 || j >= m)
+			throw runtime_error("Индекс за пределами матрицы");
+		else
+			return data[i][j];
+	}
+	friend Matrix operator*(const Matrix& a, const Matrix& b);
+	friend Matrix operator^(const Matrix& a, int k);
+	pair<int, int> size() const { return { n, m }; };
+};
+
+Matrix operator*(const Matrix& a, const Matrix& b)
+{
+	if (a.m != b.n) throw runtime_error("Матрицы невозможно перемножить");
+	Matrix c(a.n, b.n);
+	for (int i = 0; i < c.n; i++)
+		for (int j = 0; j < c.m; j++)
+			for (int k = 0; k < a.m; k++)
+				c.data[i][j] += a.data[i][k] * b.data[k][j];
+	return c;
+}
+
+Matrix operator^(const Matrix& a, int k)
+{
+	if (k == 1)
+		return a;
+	else if (k % 2 == 0)
+		return ((a ^ (k / 2)) * a);
+	else if (k % 2 == 1)
+		return (((a ^ ((k - 1) / 2)) ^ 2) * a);
+}
+
+int main()
+{
+	int n, k;
+	cin >> n >> k;
+	Matrix a(n, n);
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			cin >> a(i, j);
+
+	Matrix b = a ^ 3;
+
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+			cout << b(i, j) << " ";
+		cout << endl;
+	}
+	return 0;
+}
