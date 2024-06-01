@@ -1,0 +1,13 @@
+5. Напишите функцию для симметричного (in-order) обхода бинарного дерева, заданного следующей структурой:
+struct node { int value; node *left, *right; };
+К каждому значению, хранящемуся в дереве, функция применяет функцию, указанную в качестве аргумента:
+void inorder(node *n, void (*f)(int));
+
+void inorder(Node* n, void (*f)(int)) 
+{
+    if (!n) {
+        inorder(n->left, f);    
+        f(n->value);           
+        inorder(n->right, f);   
+    }
+}
