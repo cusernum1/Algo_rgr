@@ -1,0 +1,51 @@
+13. Используя поиск в глубину, определите число компонент связности в графе, задаваемом следующим образом:
+(945) Как матрица NxM из клеток черного ('B') и белого ('W') цветов. Клетки считаются связными, если они имеют общую границу и цвета клеток отличаются (компонента раскрашена в черно-белую клетку как шахматная доска).
+
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+void dfs(const vector <vector<char>>& grid, vector<vector<bool>>& visited, int x, int y) {
+	int n = grid.size();
+	int m = grid[0].size();
+
+	// Определяем направления для перемещения: вверх, вниз, влево, вправо
+	int dx[] = { -1, 1, 0, 0 };
+	int dy[] = { 0, 0, -1, 1 };
+
+	visited[x][y] = true;
+
+	// Проверяем все возможные направления
+	for (int dir = 0; dir < 4; dir++) {
+		int nx = x + dx[dir];
+		int ny = y + dy[dir];
+
+		// Проверяем границы и условия для продолжения DFS
+		if (nx >= 0 && nx < n && ny >= 0 && ny < m && !visited[nx][ny] && grid[nx][ny] != grid[x][y])
+			dfs(grid, visited, nx, ny);
+	}
+}
+
+int countConnectedComponents(const vector < vector < char>>& grid) {
+	int n = grid.size();
+	if (n == 0) return 0;
+	int m = grid[0].size();
+	if (m == 0) return 0;
+
+	vector<vector<bool>> visited(n, vector<bool>(m, false));
+	int componentCount = 0;
+
+	// Проходим по всем клеткам матрицы
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < m; j++) {
+			// Если клетка не была посещена, это начало новой компоненты
+			if (!visited[i][j]) {
+				dfs(grid, visited, i, j);
+				componentCount++;
+			}
+		}
+	}
+
+	return componentCount;
+}
