@@ -1,0 +1,68 @@
+23. Определите необходимые геометрические объекты и напишите следующую функцию
+В декартовой системе координат на плоскости заданы окружность и точка вне неё. Найдите касательные к окружности, проходящие через точку.
+Для точки использовать класс из лекций и его методы.
+
+
+#include <iostream>
+#include <cmath>
+#include <vector>
+
+using namespace std;
+
+struct Point {
+	double x, y;
+
+	double len() const { return hypot(x, y); } // расстояние от начала координат
+	double phi() const { return atan2(y, x); } // угол
+	Point operator+(Point p) const { return { x + p.x, y + p.y }; }
+	Point operator-(Point p) const { return { x - p.x, y - p.y }; }
+	double operator*(Point p) const { return x * p.x + y * p.y; } // скалярное произведение
+	double operator^(Point p) const { return x * p.y - y * p.x; } // векторное произведение
+	Point operator*(double a) const { return { a * x, a * y }; } // "масштабирование"
+	Point turn(double a) const { double ca = cos(a), sa = sin(a); return { x * ca - y * sa, x * sa + y * ca }; } // поворот
+	Point turn() const { return { -y, x }; } // поворот на π/2
+	Point operator-() const { return { -x, -y }; } // поворот на π
+};
+
+inline Point operator*(double a, Point p) { return p * a; } // "масштабирование"
+
+struct Circle {
+	Point center;
+	double r;
+};
+
+struct Line {
+	double a, b, c;
+};
+
+vector<Line> findTangents(const Circle& circle, const Point& point) {
+	vector<Line> tangents;
+	Point vec = point - circle.center;
+	double distanceToCenter = vec.len();
+
+	if (distanceToCenter < circle.r)
+		return tangents;
+
+	double angle = vec.phi();
+	double tangentAngle = asin(circle.r / distanceToCenter);
+
+	Point tangentPoint1 = circle.center + (vec.turn(tangentAngle) * (circle.r / distanceToCenter));
+	Point tangentPoint2 = circle.center + (vec.turn(-tangentAngle) * (circle.r / distanceToCenter));
+
+	Line tangent1 = {
+	tangentPoint1.y - point.y,
+	point.x - tangentPoint1.x,
+	tangentPoint1.x * point.y - tangentPoint1.y * point.x
+	};
+
+	Line tangent2 = {
+	tangentPoint2.y - point.y,
+	point.x - tangentPoint2.x,
+	tangentPoint2.x * point.y - tangentPoint2.y * point.x
+	};
+
+	tangents.push_back(tangent1);
+	tangents.push_back(tangent2);
+
+	return tangents;
+}
